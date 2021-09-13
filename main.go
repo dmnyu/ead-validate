@@ -40,25 +40,29 @@ func buildFileEntry(terminal *fyne.Container) *fyne.Container {
 	c.Add(entry)
 	button := widget.NewButton("Validate", func() {
 		path := entry.Text
-		terminal.Add(canvas.NewText(fmt.Sprintf("Validating `%s`", path), black))
-		if fileExists(path) == true {
-			terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` exists", path), black))
-			if isFile(path) == true {
-				terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a file", path), black))
-				if isValid(path) == true {
-					terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a valid", path), black))
-				} else {
-					terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is not valid", path), black))
-				}
-			} else {
-				terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a directory, cannot validate", path), black))
-			}
-		} else {
-			terminal.Add(canvas.NewText(fmt.Sprintf("`%s` does not exist", path), black))
-		}
+		runValidation(path, terminal)
 	})
 	c.Add(button)
 	return c
+}
+
+func runValidation(path string, terminal *fyne.Container) {
+	terminal.Add(canvas.NewText(fmt.Sprintf("Validating `%s`", path), black))
+	if fileExists(path) == true {
+		terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` exists", path), black))
+		if isFile(path) == true {
+			terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a file", path), black))
+			if isValid(path) == true {
+				terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a valid", path), black))
+			} else {
+				terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is not valid", path), black))
+			}
+		} else {
+			terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a directory, cannot validate", path), black))
+		}
+	} else {
+		terminal.Add(canvas.NewText(fmt.Sprintf("`%s` does not exist", path), black))
+	}
 }
 
 func fileExists(path string) bool {
