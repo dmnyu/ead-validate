@@ -7,4 +7,4 @@ require (
 	github.com/nyudlts/go-aspace v0.0.0-00010101000000-000000000000
 )
 
-replace github.com/nyudlts/go-aspace => /Users/menneric/go/src/github.com/nyudlts/go-aspace
+replace github.com/nyudlts/go-aspace => /Users/donmennerich/go/src/github.com/nyudlts/go-aspace

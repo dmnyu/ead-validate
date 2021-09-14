@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/nyudlts/go-aspace"
@@ -14,54 +15,72 @@ import (
 	"os"
 )
 
-var black = color.Black
+var (
+	black = color.Black
+	data  binding.ExternalStringList
+)
 
 func main() {
+
 	a := app.NewWithID("edu.nyu.dlts.ead-validate")
 	validator := a.NewWindow("EAD Validator")
 	validator.Resize(fyne.NewSize(480, 480))
-	terminal := buildTerminal()
-	fileEntry := buildFileEntry(terminal)
-	c := container.New(layout.NewVBoxLayout(), fileEntry, terminal)
+	fileEntry := buildFileEntry()
+	buttons := buildButtons()
+	data = binding.BindStringList(&[]string{"OUTPUT"})
+	list := widget.NewListWithData(data,
+		func() fyne.CanvasObject {
+			return widget.NewLabel("template")
+		},
+		func(i binding.DataItem, o fyne.CanvasObject) {
+			o.(*widget.Label).Bind(i.(binding.String))
+		})
+	list.Resize(fyne.NewSize(480, 240))
+	c := container.New(layout.NewVBoxLayout(), fileEntry, list, buttons)
 	validator.SetContent(c)
 	validator.ShowAndRun()
 }
 
-func buildTerminal() *fyne.Container {
-	c := container.New(layout.NewVBoxLayout())
-	c.Add(canvas.NewText("Output", black))
-	return c
-}
-
-func buildFileEntry(terminal *fyne.Container) *fyne.Container {
+func buildFileEntry() *fyne.Container {
 	c := container.New(layout.NewVBoxLayout())
 	c.Add(canvas.NewText("Set the location of the EAD file to validate", black))
 	entry := widget.NewEntry()
 	c.Add(entry)
 	button := widget.NewButton("Validate", func() {
 		path := entry.Text
-		runValidation(path, terminal)
+		runValidation(path)
 	})
 	c.Add(button)
 	return c
 }
 
-func runValidation(path string, terminal *fyne.Container) {
-	terminal.Add(canvas.NewText(fmt.Sprintf("Validating `%s`", path), black))
+func buildButtons() *fyne.Container {
+	c := container.New(layout.NewHBoxLayout())
+	logButton := widget.NewButton("Write Log", func() {})
+	c.Add(logButton)
+	quitButton := widget.NewButton("Exit", func() {
+		os.Exit(0)
+	})
+	c.Add(quitButton)
+	return c
+}
+
+func runValidation(path string) {
+	data.Append(fmt.Sprintf("Validating `%s`", path))
 	if fileExists(path) == true {
-		terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` exists", path), black))
+		data.Append(fmt.Sprintf("`%s` exists", path))
 		if isFile(path) == true {
-			terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a file", path), black))
+			data.Append(fmt.Sprintf("`%s` is a file", path))
 			if isValid(path) == true {
-				terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a valid", path), black))
+				data.Append(fmt.Sprintf("`%s` is a valid", path))
 			} else {
-				terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is not valid", path), black))
+				data.Append(fmt.Sprintf("`%s` is not valid", path))
 			}
 		} else {
-			terminal.Add(canvas.NewText(fmt.Sprintf("  `%s` is a directory, cannot validate", path), black))
+			data.Append(fmt.Sprintf("`%s` is a directory, cannot validate", path))
 		}
 	} else {
-		terminal.Add(canvas.NewText(fmt.Sprintf("`%s` does not exist", path), black))
+		data.Append(fmt.Sprintf("  `%s` does not exist", path))
 	}
 }
 
